@@ -9,12 +9,21 @@
             <div class="umb-group-builder__property">
 
                 <div tabindex="-1" class="umb-group-builder__property-preview">
-                    <div class="umb-group-builder__property-tags"></div>
+                    <div class="umb-group-builder__property-tags">
+                        <div class="umb-group-builder__property-tag -white" ng-if="vm.previews[item.key]">
+                            <i class="umb-group-builder__property-tag-icon" ng-class="item.icon"></i>
+                            <span ng-bind="item.name"></span>
+                        </div>
+                    </div>
                     <div class="umb-group-builder__property-tags -right"></div>
                     <div class="umb-group-builder__property-preview-form">
-                        <div class="lk-content-blocks-preview-default">
+                        <div class="lk-content-blocks-preview-default" ng-if="!vm.previews[item.key]">
                             <i class="icon" ng-class="item.icon"></i>
                             <div ng-bind="item.name"></div>
+                        </div>
+                        <div ng-if="vm.previews[item.key]">
+                            <umb-load-indicator ng-if="vm.previews[item.key].loading" />
+                            <div ng-bind-html="vm.previews[item.key].markup | safe_html"></div>
                         </div>
                     </div>
                     <button aria-label="Edit content" type="button" class="umb-group-builder__open-settings" ng-click="vm.edit($index)"></button>

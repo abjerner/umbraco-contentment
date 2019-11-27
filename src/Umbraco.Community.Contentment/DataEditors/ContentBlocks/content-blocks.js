@@ -4,16 +4,19 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 angular.module("umbraco").controller("Umbraco.Community.Contentment.DataEditors.ContentBlocks.Controller", [
-    "$interpolate",
     "$scope",
+    "$http",
+    "$interpolate",
     "clipboardService",
     "contentResource",
     "editorService",
+    "editorState",
     "localizationService",
     "notificationsService",
     "overlayService",
+    "umbRequestHelper",
     "Umbraco.Community.Contentment.Services.DevMode",
-    function ($interpolate, $scope, clipboardService, contentResource, editorService, localizationService, notificationsService, overlayService, devModeService) {
+    function ($scope, $http, $interpolate, clipboardService, contentResource, editorService, editorState, localizationService, notificationsService, overlayService, umbRequestHelper, devModeService) {
 
         // console.log("content-blocks.model", $scope.model);
 
@@ -103,9 +106,33 @@ angular.module("umbraco").controller("Umbraco.Community.Contentment.DataEditors.
                 });
             }
 
-            for (var i = 0; i < $scope.model.value.length; i++) {
-                vm.blockActions.push(actionsFactory(i));
-            }
+            vm.previews = [];
+
+            _.each($scope.model.value, function (item, index) {
+
+                vm.blockActions.push(actionsFactory(index));
+
+                if (config.elementTypeLookup[item.elementType].previewEnabled) {
+
+                    vm.previews[item.key] = { loading: true };
+
+                    umbRequestHelper.resourcePromise(
+                        $http.post(
+                            "backoffice/Contentment/ContentBlocksApi/GetPreviewMarkup",
+                            item,
+                            { params: { pageId: editorState.current.id } }
+                        ),
+                        "Failed to retrieve preview markup")
+                        .then(function (markup) {
+                            if (markup) {
+                                vm.previews[item.key] = {
+                                    loading: false,
+                                    markup: markup
+                                };
+                            }
+                        });
+                }
+            });
         };
 
         function actionsFactory($index) {
